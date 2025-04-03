@@ -44,10 +44,78 @@
         <!-- Section for displaying existing questions -->
         <div class="questions-section mt-5">
             <h2 class="title is-4">Recent Questions</h2>
-            <!-- Questions will be displayed here -->
-            <div class="notification is-info is-light">
-                No questions yet. Be the first to ask!
-            </div>
+            
+            {% if questions %}
+                {% for question in questions %}
+                <div class="box question-box">
+                    <article class="media">
+                        <div class="media-content">
+                            <div class="content">
+                                <p>
+                                    <strong>{{ question.nickname }}</strong> 
+                                    <small>{{ question.created_at }}</small>
+                                    <br>
+                                    {{ question.content }}
+                                </p>
+                            </div>
+                            
+                            <div class="answer-box mt-3 pl-5">
+                                <div class="content">
+                                    <p class="has-text-weight-bold">Answer:</p>
+                                    {% if question.answer %}
+                                        <p>{{ question.answer }}</p>
+                                        <small>Answered on {{ question.answered_at }}</small>
+                                    {% else %}
+                                        <p class="has-text-grey-light">No answer yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                {% endfor %}
+                
+                <!-- Pagination -->
+                {% if pagination.pages > 1 %}
+                <nav class="pagination is-centered mt-5" role="navigation" aria-label="pagination">
+                    {% if pagination.has_prev %}
+                    <a href="{{ url_for('index', page=pagination.prev_num) }}" class="pagination-previous">Previous</a>
+                    {% else %}
+                    <a class="pagination-previous" disabled>Previous</a>
+                    {% endif %}
+                    
+                    {% if pagination.has_next %}
+                    <a href="{{ url_for('index', page=pagination.next_num) }}" class="pagination-next">Next</a>
+                    {% else %}
+                    <a class="pagination-next" disabled>Next</a>
+                    {% endif %}
+                    
+                    <ul class="pagination-list">
+                        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if page_num %}
+                                {% if page_num == pagination.page %}
+                                <li>
+                                    <a class="pagination-link is-current" aria-current="page">{{ page_num }}</a>
+                                </li>
+                                {% else %}
+                                <li>
+                                    <a href="{{ url_for('index', page=page_num) }}" class="pagination-link">{{ page_num }}</a>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                                <li>
+                                    <span class="pagination-ellipsis">&hellip;</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="notification is-info is-light">
+                    No questions yet. Be the first to ask!
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
