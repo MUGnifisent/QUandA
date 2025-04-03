@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <style>
+        :root {
+            --bulma-primary-h: 24deg;
+            --bulma-primary-s: 61%;
+            --bulma-primary-l: 51%;
+            --bulma-link-h: 24deg;
+            --bulma-link-s: 74%;
+            --bulma-link-l: 51%;
+            --bulma-warning-h: 50deg;
+        }
+       
+        .logo-button {
+            pointer-events: none;
+            cursor: default;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+       
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-left: -5px;
+        }
+
+        .navbar-container {
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 30;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .divider-line {
+            height: 4px;
+            background-color: hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-l));
+            margin: 0 10px;
+            border-radius: 2px;
+        }
+
+        body {
+            padding-top: 75px;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 1.5rem;
+        }
+        
+        footer {
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar-container">
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <div class="navbar-item">
+                    <div class="button is-primary logo-button">
+                        {%block user%}{% endblock %}
+                    </div>
+                    <span class="logo-text">'s QUandA</span>
+                </div>
+            </div>
+        </nav>
+        <div class="divider-line"></div>
+    </div>
+   
+    <div class="main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer>
+        <div class="divider-line"></div>
+        <div class="content has-text-centered">
+            {%block footer%}{% endblock %}
+        </div>
+    </footer>
+
+    <!-- Scripts block for page-specific JavaScript -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

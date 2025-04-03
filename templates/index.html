@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{user}}'s QUandA{% endblock %}
+{%block user%}{{user}}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="content">
+        <h1 class="title is-2">Welcome to my QUandA!</h1>
+        
+        <div class="block">
+            {% for paragraph in introduction.split('\n\n') %}
+                {% if paragraph.strip() %}
+                    <p class="is-size-5">{{ paragraph }}</p>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <!-- Question submission form -->
+        <div class="box">
+            <h2 class="title is-4">Ask Me a Question</h2>
+            <form method="post" action="/submit-question">
+                <div class="field">
+                    <label class="label">Your Question</label>
+                    <div class="control">
+                        <textarea class="textarea" name="question" placeholder="What would you like to ask me?" required></textarea>
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <label class="label">Your Nickname</label>
+                    <div class="control">
+                        <input class="input has-text-grey-light" type="text" name="nickname" id="nickname-field" placeholder="anon" value="anon">
+                    </div>
+                    <p class="help">You can use a nickname or stay anonymous</p>
+                </div>
+                
+                <div class="field">
+                    <div class="control">
+                        <button type="submit" class="button is-primary">Submit Question</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Section for displaying existing questions -->
+        <div class="questions-section mt-5">
+            <h2 class="title is-4">Recent Questions</h2>
+            <!-- Questions will be displayed here -->
+            <div class="notification is-info is-light">
+                No questions yet. Be the first to ask!
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}
+
+{%block footer%}
+<p>stuff</p>
+{% endblock %}
