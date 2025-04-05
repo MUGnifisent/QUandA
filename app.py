@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, jsonify
+from flask import Flask, redirect, url_for, render_template, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
@@ -7,6 +7,8 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from dotenv import load_dotenv
 import sys
+from werkzeug.exceptions import NotFound, BadRequest, TooManyRequests
+import re
 
 # Load environment variables from .env file
 load_dotenv()
@@ -144,64 +146,128 @@ def index():
 
 Feel free to ask me anything you're curious about - whether it's about my work, hobbies, opinions, or just something you'd like my perspective on. I'll do my best to answer your questions!
 """
-    # Get page number from query parameters, default to 1
-    page = request.args.get('page', 1, type=int)
-    per_page = 10
-    
-    app.logger.debug(f"Fetching questions for page {page} with {per_page} per page")
-    
-    # Get questions with pagination
-    questions_pagination = Question.query.order_by(Question.created_at.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
-    )
-    
-    app.logger.debug(f"Found {len(questions_pagination.items)} questions for page {page}")
-    
-    return render_template(
-        'index.html', 
-        user=username, 
-        introduction=intro,
-        questions=questions_pagination.items,
-        pagination=questions_pagination
-    )
+    try:
+        # Get page number from query parameters, default to 1
+        page = request.args.get('page', 1, type=int)
+        
+        # Validate page number
+        if page < 1:
+            app.logger.warning(f"Invalid page number requested: {page}")
+            return redirect(url_for('index', page=1))
+            
+        per_page = 10
+        
+        app.logger.debug(f"Fetching questions for page {page} with {per_page} per page")
+        
+        # Get questions with pagination
+        questions_pagination = Question.query.order_by(Question.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        # If page exceeds max pages, redirect to last page
+        if page > 1 and not questions_pagination.items:
+            last_page = max(1, questions_pagination.pages)
+            app.logger.warning(f"Page {page} requested but only {last_page} pages exist")
+            return redirect(url_for('index', page=last_page))
+        
+        app.logger.debug(f"Found {len(questions_pagination.items)} questions for page {page}")
+        
+        return render_template(
+            'index.html', 
+            user=username, 
+            introduction=intro,
+            questions=questions_pagination.items,
+            pagination=questions_pagination
+        )
+    except Exception as e:
+        app.logger.error(f"Error in index route: {str(e)}", exc_info=True)
+        return render_template('500.html'), 500
 
 @app.route("/submit-question", methods=["POST"])
 def submit_question():
-    # Get form data
-    question_content = request.form.get('question')
-    nickname = request.form.get('nickname', 'anon')
-    
-    if not question_content:
-        app.logger.warning("Attempted to submit empty question")
+    try:
+        # Get form data
+        question_content = request.form.get('question', '').strip()
+        nickname = request.form.get('nickname', 'anon').strip()
+        
+        # Input validation
+        if not question_content:
+            app.logger.warning("Attempted to submit empty question")
+            return redirect(url_for('index'))
+        
+        # Basic content limits to prevent abuse
+        if len(question_content) > 2000:
+            app.logger.warning(f"Question too long ({len(question_content)} chars) from {request.remote_addr}")
+            return render_template('error.html', 
+                                  error_title="Question Too Long", 
+                                  error_message="Your question exceeds the maximum length. Please keep questions under 2000 characters."), 400
+        
+        # Sanitize nickname (prevent HTML/JS injection)
+        nickname = re.sub(r'[<>\'";]', '', nickname)[:50]  # Limit nickname length
+        if not nickname:
+            nickname = 'anon'
+        
+        app.logger.info(f"New question from '{nickname}': {question_content[:30]}...")
+            
+        # Create new question
+        new_question = Question(content=question_content, nickname=nickname)
+        
+        try:
+            # Add to database
+            db.session.add(new_question)
+            db.session.commit()
+            app.logger.info(f"Question saved with ID: {new_question.id}")
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error saving question: {str(e)}", exc_info=True)
+            return render_template('500.html'), 500
+        
+        # Redirect back to home page
         return redirect(url_for('index'))
     
-    app.logger.info(f"New question from '{nickname}': {question_content[:30]}...")
-        
-    # Create new question
-    new_question = Question(content=question_content, nickname=nickname)
-    
-    try:
-        # Add to database
-        db.session.add(new_question)
-        db.session.commit()
-        app.logger.info(f"Question saved with ID: {new_question.id}")
     except Exception as e:
-        db.session.rollback()
-        app.logger.error(f"Error saving question: {str(e)}", exc_info=True)
-    
-    # Redirect back to home page
-    return redirect(url_for('index'))
+        app.logger.error(f"Unexpected error in submit_question: {str(e)}", exc_info=True)
+        return render_template('500.html'), 500
 
 # Error handlers
 @app.errorhandler(404)
 def page_not_found(e):
-    app.logger.warning(f"404 error: {request.path}")
-    return render_template('404.html'), 404
+    app.logger.warning(f"404 error: {request.path} - IP: {request.remote_addr}")
+    return render_template('404.html', 
+                          requested_path=request.path), 404
+
+@app.errorhandler(400)
+def bad_request(e):
+    app.logger.warning(f"400 error: {request.path} - IP: {request.remote_addr}")
+    return render_template('error.html', 
+                          error_title="Bad Request", 
+                          error_message="The server could not understand your request."), 400
+
+@app.errorhandler(403)
+def forbidden(e):
+    app.logger.warning(f"403 error: {request.path} - IP: {request.remote_addr}")
+    return render_template('error.html', 
+                          error_title="Forbidden", 
+                          error_message="You don't have permission to access this resource."), 403
+
+@app.errorhandler(429)
+def too_many_requests(e):
+    app.logger.warning(f"429 error: Rate limit exceeded - IP: {request.remote_addr}")
+    return render_template('error.html', 
+                          error_title="Too Many Requests", 
+                          error_message="You've made too many requests. Please try again later."), 429
 
 @app.errorhandler(500)
 def server_error(e):
-    app.logger.error(f"500 error: {str(e)}", exc_info=True)
+    app.logger.error(f"500 error: {str(e)} - IP: {request.remote_addr}", exc_info=True)
     return render_template('500.html'), 500
+
+# Catch-all route for undefined paths
+@app.route('/<path:undefined_path>')
+def undefined_route(undefined_path):
+    app.logger.warning(f"Attempted to access undefined route: /{undefined_path} - IP: {request.remote_addr}")
+    return render_template('404.html',
+                          requested_path=f"/{undefined_path}"), 404
 
 if __name__ == "__main__":
     # Get port from environment variable or default to 5000

@@ -47,26 +47,54 @@
             
             {% if questions %}
                 {% for question in questions %}
-                <div class="box question-box">
+                <div class="box question-box mb-5">
                     <article class="media">
                         <div class="media-content">
-                            <div class="content">
-                                <p>
-                                    <strong>{{ question.nickname }}</strong> 
-                                    <small>{{ question.created_at }}</small>
-                                    <br>
-                                    {{ question.content }}
-                                </p>
+                            <!-- Question header with metadata -->
+                            <div class="level is-mobile mb-2">
+                                <div class="level-left">
+                                    <div class="level-item">
+                                        <span class="is-size-5 has-text-weight-semibold has-text-primary">{{ question.nickname }}</span>
+                                    </div>
+                                </div>
+                                <div class="level-right">
+                                    <div class="level-item has-text-grey-lighter">
+                                        <span class="question-time" data-timestamp="{{ question.created_at }}">
+                                            <time datetime="{{ question.created_at }}">{{ question.created_at }}</time>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div class="answer-box mt-3 pl-5">
-                                <div class="content">
-                                    <p class="has-text-weight-bold">Answer:</p>
+                            <!-- Question content -->
+                            <div class="content mb-4 p-3 has-text-light">
+                                <p class="is-size-5">{{ question.content }}</p>
+                            </div>
+                            
+                            <!-- Answer section -->
+                            <div class="answer-section pl-5 pt-3">
+                                <div class="level is-mobile mb-2">
+                                    <div class="level-left">
+                                        <div class="level-item">
+                                            <span class="has-text-weight-bold is-size-6">Answer:</span>
+                                        </div>
+                                    </div>
+                                    {% if question.answered_at %}
+                                    <div class="level-right">
+                                        <div class="level-item has-text-grey-lighter">
+                                            <span class="answer-time" data-timestamp="{{ question.answered_at }}">
+                                                <time datetime="{{ question.answered_at }}">{{ question.answered_at }}</time>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="content p-3 {% if question.answer %}has-background-black-bis has-text-light{% else %}has-background-black-bis has-text-grey-light{% endif %}">
                                     {% if question.answer %}
                                         <p>{{ question.answer }}</p>
-                                        <small>Answered on {{ question.answered_at }}</small>
                                     {% else %}
-                                        <p class="has-text-grey-light">No answer yet.</p>
+                                        <p class="has-text-centered">No answer yet</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -123,6 +151,7 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+<script src="{{ url_for('static', filename='js/timezone.js') }}"></script>
 {% endblock %}
 
 {%block footer%}
