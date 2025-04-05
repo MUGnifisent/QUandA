@@ -86,11 +86,51 @@
     <footer>
         <div class="divider-line"></div>
         <div class="content has-text-centered">
-            {%block footer%}{% endblock %}
+            {% block footer %}
+            {% endblock %}
         </div>
     </footer>
-
+    
+    <!-- Admin Login Modal -->
+    <div class="modal" id="admin-login-modal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Admin Login</p>
+                <button class="delete" aria-label="close" id="close-login-modal"></button>
+            </header>
+            <form id="admin-login-form" method="post" action="/admin/login">
+                <section class="modal-card-body">
+                    <div class="field">
+                        <label class="label">Username</label>
+                        <div class="control">
+                            <input class="input" type="text" name="username" placeholder="Username" required>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="label">Password</label>
+                        <div class="control">
+                            <input class="input" type="password" name="password" placeholder="Password" required>
+                        </div>
+                    </div>
+                    
+                    <div id="login-error" class="notification is-danger is-light is-hidden">
+                        <button class="delete"></button>
+                        Invalid credentials. Please try again.
+                    </div>
+                </section>
+                <footer class="modal-card-foot">
+                    <button type="submit" class="button is-primary">Login</button>
+                    <button type="button" class="button" id="cancel-login">Cancel</button>
+                </footer>
+            </form>
+        </div>
+    </div>
+    
     <!-- Scripts block for page-specific JavaScript -->
     {% block scripts %}{% endblock %}
+    <!-- Always include admin login script -->
+    <script src="{{ url_for('static', filename='js/admin-login.js') }}"></script>
 </body>
 </html>

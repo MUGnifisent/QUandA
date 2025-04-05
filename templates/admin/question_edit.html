@@ -1,0 +1,142 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if question.answer %}Edit Answer{% else %}Answer Question{% endif %}{% endblock %}
+{% block page_title %}{% if question.answer %}Edit Answer{% else %}Answer Question{% endif %}{% endblock %}
+
+{% block header_actions %}
+<div class="buttons">
+    {% if not question.is_approved %}
+    <form method="post" action="{{ url_for('admin_question_edit', question_id=question.id) }}" style="display: inline;">
+        <input type="hidden" name="action" value="approve">
+        <button type="submit" class="button is-success">Approve Question</button>
+    </form>
+    {% endif %}
+    
+    <a href="{{ url_for('admin_questions') }}" class="button is-light">
+        Back to Questions
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="columns">
+    <div class="column">
+        <div class="box">
+            <div class="level">
+                <div class="level-left">
+                    <div class="level-item">
+                        <span class="tag is-primary is-medium">{{ question.nickname }}</span>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        <span class="has-text-grey-light">{{ question.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content mt-4 mb-5">
+                <p class="is-size-5">{{ question.content }}</p>
+            </div>
+            
+            <div class="tabs">
+                <ul>
+                    <li class="is-active" data-tab="answer-tab"><a>Answer</a></li>
+                    <li data-tab="edit-tab"><a>Edit Question</a></li>
+                    <li data-tab="delete-tab"><a>Delete Question</a></li>
+                </ul>
+            </div>
+            
+            <div id="answer-tab" class="tab-content">
+                <form method="post" action="{{ url_for('admin_question_edit', question_id=question.id) }}">
+                    <input type="hidden" name="action" value="answer">
+                    
+                    <div class="field">
+                        <label class="label">Your Answer</label>
+                        <div class="control">
+                            <textarea class="textarea" name="answer" rows="8" required>{{ question.answer or '' }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <div class="control">
+                            <button type="submit" class="button is-primary">
+                                {% if question.answer %}Update Answer{% else %}Submit Answer{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="edit-tab" class="tab-content is-hidden">
+                <form method="post" action="{{ url_for('admin_question_edit', question_id=question.id) }}">
+                    <input type="hidden" name="action" value="edit">
+                    
+                    <div class="field">
+                        <label class="label">Question Content</label>
+                        <div class="control">
+                            <textarea class="textarea" name="content" rows="5" required>{{ question.content }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="label">Nickname</label>
+                        <div class="control">
+                            <input class="input" type="text" name="nickname" value="{{ question.nickname }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <div class="control">
+                            <button type="submit" class="button is-primary">Update Question</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="delete-tab" class="tab-content is-hidden">
+                <div class="notification is-danger is-light">
+                    <p>Warning: This action cannot be undone. The question and its answer will be permanently deleted.</p>
+                </div>
+                
+                <form method="post" action="{{ url_for('admin_question_edit', question_id=question.id) }}">
+                    <input type="hidden" name="action" value="delete">
+                    
+                    <div class="field">
+                        <div class="control">
+                            <button type="submit" class="button is-danger">Delete Question</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tabs functionality
+    const tabs = document.querySelectorAll('.tabs li');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs
+            tabs.forEach(t => t.classList.remove('is-active'));
+            
+            // Add active class to clicked tab
+            tab.classList.add('is-active');
+            
+            // Hide all tab contents
+            tabContents.forEach(content => content.classList.add('is-hidden'));
+            
+            // Show the corresponding tab content
+            const tabId = tab.getAttribute('data-tab');
+            document.getElementById(tabId).classList.remove('is-hidden');
+        });
+    });
+});
+</script>
+{% endblock %}

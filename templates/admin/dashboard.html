@@ -1,0 +1,115 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="columns is-multiline">
+    <!-- Statistics Cards -->
+    <div class="column is-one-third">
+        <div class="box has-text-centered">
+            <p class="heading">Total Questions</p>
+            <p class="title">{{ total_count }}</p>
+        </div>
+    </div>
+    
+    <div class="column is-one-third">
+        <div class="box has-text-centered">
+            <p class="heading">Unanswered Questions</p>
+            <p class="title">{{ unanswered_count }}</p>
+        </div>
+    </div>
+    
+    {% if moderation_enabled %}
+    <div class="column is-one-third">
+        <div class="box has-text-centered">
+            <p class="heading">Pending Approval</p>
+            <p class="title">{{ pending_count }}</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="column is-one-third">
+        <div class="box has-text-centered">
+            <p class="heading">Moderation</p>
+            <p class="title">Disabled</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="columns">
+    <div class="column">
+        <div class="box">
+            <h2 class="title is-4">Quick Actions</h2>
+            
+            <div class="buttons">
+                <a href="{{ url_for('admin_questions', filter='unanswered') }}" class="button is-primary">
+                    Answer Questions
+                </a>
+                
+                {% if moderation_enabled %}
+                <a href="{{ url_for('admin_questions', filter='pending') }}" class="button is-info">
+                    Moderate Pending Questions
+                </a>
+                {% endif %}
+                
+                <a href="{{ url_for('admin_profile') }}" class="button is-link">
+                    Update Profile
+                </a>
+                
+                <a href="{{ url_for('admin_settings') }}" class="button is-warning">
+                    Site Settings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if unanswered_count > 0 %}
+<div class="columns">
+    <div class="column">
+        <div class="box">
+            <h2 class="title is-4">Recent Unanswered Questions</h2>
+            
+            <div class="table-container">
+                <table class="table is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>Question</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for question in Question.query.filter_by(answer=None).order_by(Question.created_at.desc()).limit(5).all() %}
+                        <tr>
+                            <td>{{ question.nickname }}</td>
+                            <td>
+                                {{ question.content[:50] }}{% if question.content|length > 50 %}...{% endif %}
+                            </td>
+                            <td>{{ question.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="{{ url_for('admin_question_edit', question_id=question.id) }}" class="button is-small is-primary">
+                                    Answer
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if unanswered_count > 5 %}
+            <div class="has-text-centered mt-4">
+                <a href="{{ url_for('admin_questions', filter='unanswered') }}" class="button is-small">
+                    View All Unanswered Questions
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+{% block page_title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="columns">
+    <div class="column is-two-thirds">
+        <div class="box">
+            <form method="post" action="{{ url_for('admin_profile') }}">
+                <div class="field">
+                    <label class="label">Display Name</label>
+                    <div class="control">
+                        <input class="input" type="text" name="display_name" value="{{ admin.display_name }}" required>
+                    </div>
+                    <p class="help">This name will be displayed on your Q&A site</p>
+                </div>
+                
+                <div class="field">
+                    <label class="label">Introduction</label>
+                    <div class="control">
+                        <textarea class="textarea" name="introduction" rows="10" required>{{ admin.introduction }}</textarea>
+                    </div>
+                    <p class="help">This introduction will be displayed on your homepage. Use blank lines to create paragraphs.</p>
+                </div>
+                
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button type="submit" class="button is-primary">Save Changes</button>
+                    </div>
+                    <div class="control">
+                        <a href="{{ url_for('admin_dashboard') }}" class="button is-light">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="column">
+        <div class="box">
+            <h3 class="title is-5">Preview</h3>
+            
+            <div class="content preview-content">
+                <h4 class="title is-6">{{ admin.display_name }}'s QUandA</h4>
+                
+                <div class="preview-introduction">
+                    {% for paragraph in admin.introduction.split('\n\n') %}
+                        {% if paragraph.strip() %}
+                            <p>{{ paragraph }}</p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update preview on input changes
+    const nameInput = document.querySelector('input[name="display_name"]');
+    const introTextarea = document.querySelector('textarea[name="introduction"]');
+    const previewName = document.querySelector('.preview-content h4');
+    const previewIntro = document.querySelector('.preview-introduction');
+    
+    function updatePreview() {
+        // Update name
+        previewName.textContent = nameInput.value + "'s QUandA";
+        
+        // Update introduction
+        previewIntro.innerHTML = '';
+        const paragraphs = introTextarea.value.split('\n\n');
+        
+        paragraphs.forEach(paragraph => {
+            if (paragraph.trim()) {
+                const p = document.createElement('p');
+                p.textContent = paragraph;
+                previewIntro.appendChild(p);
+            }
+        });
+    }
+    
+    nameInput.addEventListener('input', updatePreview);
+    introTextarea.addEventListener('input', updatePreview);
+});
+</script>
+{% endblock %}

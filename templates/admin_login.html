@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - QUandA</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <style>
+        :root {
+            --bulma-primary-h: 24deg;
+            --bulma-primary-s: 61%;
+            --bulma-primary-l: 51%;
+            --bulma-link-h: 24deg;
+            --bulma-link-s: 74%;
+            --bulma-link-l: 51%;
+            --bulma-warning-h: 50deg;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 1.5rem;
+        }
+        
+        .login-logo {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .divider-line {
+            height: 4px;
+            background-color: hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-l));
+            margin: 0.5rem 2rem 1.5rem;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-logo">
+            <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">
+                <span class="has-text-primary">QUandA</span> Admin
+            </div>
+            <div class="divider-line"></div>
+        </div>
+        
+        <div class="box">
+            {% if error %}
+            <div class="notification is-danger is-light">
+                <button class="delete"></button>
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <form method="post" action="{{ url_for('admin_login') }}">
+                <div class="field">
+                    <label class="label">Username</label>
+                    <div class="control">
+                        <input class="input" type="text" name="username" placeholder="Username" required autofocus>
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control">
+                        <input class="input" type="password" name="password" placeholder="Password" required>
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <div class="control">
+                        <button type="submit" class="button is-primary is-fullwidth">Login</button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="has-text-centered mt-4">
+                <a href="{{ url_for('index') }}">Return to site</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle notification dismissal
+        const deleteButtons = document.querySelectorAll('.notification .delete');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                this.parentNode.remove();
+            });
+        });
+    });
+    </script>
+</body>
+</html>

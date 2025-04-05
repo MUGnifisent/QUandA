@@ -1,0 +1,125 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Site Settings{% endblock %}
+{% block page_title %}Site Settings{% endblock %}
+
+{% block content %}
+<div class="columns">
+    <div class="column is-two-thirds">
+        <div class="box">
+            <h3 class="title is-4">Moderation Settings</h3>
+            
+            <form method="post" action="{{ url_for('admin_settings') }}">
+                <div class="field">
+                    <div class="control">
+                        <label class="checkbox">
+                            <input type="checkbox" name="moderation_enabled" value="true" {% if moderation_enabled %}checked{% endif %}>
+                            Enable question moderation
+                        </label>
+                    </div>
+                    <p class="help">When enabled, new questions will require approval before being visible on the site.</p>
+                </div>
+                
+                <div class="field mt-5">
+                    <div class="control">
+                        <button type="submit" class="button is-primary">Save Settings</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="box mt-6">
+            <h3 class="title is-4 has-text-danger">Danger Zone</h3>
+            
+            <div class="content">
+                <p>The following actions are irreversible. Use with caution.</p>
+            </div>
+            
+            <div class="delete-all-section mt-4">
+                <h4 class="title is-5">Delete All Questions</h4>
+                <p>This will permanently delete all questions and answers from the site.</p>
+                
+                <button class="button is-danger mt-3" id="show-delete-modal">Delete All Questions</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete All Confirmation Modal -->
+<div class="modal" id="delete-all-modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head has-background-danger">
+            <p class="modal-card-title has-text-white">Delete All Questions</p>
+            <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="content">
+                <p class="has-text-weight-bold">Warning: This action cannot be undone!</p>
+                <p>You are about to delete ALL questions and answers from your site. This data cannot be recovered.</p>
+                
+                <p class="mt-5">To confirm, type "DELETE ALL QUESTIONS" in the field below:</p>
+                
+                <form method="post" action="{{ url_for('admin_delete_all_questions') }}" id="delete-all-form">
+                    <div class="field">
+                        <div class="control">
+                            <input class="input" type="text" name="confirmation" placeholder="Type DELETE ALL QUESTIONS" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <footer class="modal-card-foot">
+            <button type="submit" form="delete-all-form" class="button is-danger" id="confirm-delete-all" disabled>Delete All Questions</button>
+            <button class="button" id="cancel-delete-all">Cancel</button>
+        </footer>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Delete All Questions Modal
+    const deleteModal = document.getElementById('delete-all-modal');
+    const showDeleteModalButton = document.getElementById('show-delete-modal');
+    const closeModalButtons = deleteModal.querySelectorAll('.delete, #cancel-delete-all');
+    const confirmDeleteButton = document.getElementById('confirm-delete-all');
+    const confirmationInput = deleteModal.querySelector('input[name="confirmation"]');
+    
+    // Show modal when delete button is clicked
+    showDeleteModalButton.addEventListener('click', function() {
+        deleteModal.classList.add('is-active');
+    });
+    
+    // Close modal when close buttons are clicked
+    closeModalButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            deleteModal.classList.remove('is-active');
+            confirmationInput.value = '';
+            confirmDeleteButton.disabled = true;
+        });
+    });
+    
+    // Enable/disable confirm button based on input
+    confirmationInput.addEventListener('input', function() {
+        confirmDeleteButton.disabled = this.value !== 'DELETE ALL QUESTIONS';
+    });
+    
+    // Handle checkbox form submission
+    const moderationCheckbox = document.querySelector('input[name="moderation_enabled"]');
+    const moderationForm = moderationCheckbox.closest('form');
+    
+    moderationForm.addEventListener('submit', function(event) {
+        // If checkbox is not checked, include it as false
+        if (!moderationCheckbox.checked) {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'moderation_enabled';
+            hiddenInput.value = 'false';
+            this.appendChild(hiddenInput);
+        }
+    });
+});
+</script>
+{% endblock %}
