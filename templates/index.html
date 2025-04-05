@@ -156,6 +156,6 @@
 
 {%block footer%}
 <p>
-    Are you {{user}}? <a href="#" id="admin-login-link" class="has-text-primary">Log in</a> and answer the questions!
+    Are you {{user}}? <a href="#" id="admin-login-link" class="has-text-primary" data-logged-in="{{ 'true' if session.get('admin_logged_in') else 'false' }}">Log in</a> and answer the questions!
 </p>
 {% endblock %}

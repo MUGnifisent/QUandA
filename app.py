@@ -291,6 +291,9 @@ def index():
         
         app.logger.debug(f"Found {len(questions_pagination.items)} questions for page {page}")
         
+        # Make session variable available to templates
+        app.jinja_env.globals['session'] = session
+        
         return render_template(
             'index.html', 
             user=username, 

@@ -16,16 +16,26 @@ function initAdminLoginModal() {
     
     if (!loginLink || !loginModal) return;
     
-    // Open modal when login link is clicked
+    // Open modal when login link is clicked or redirect if already logged in
     loginLink.addEventListener('click', function(e) {
         e.preventDefault();
-        loginModal.classList.add('is-active');
         
-        // Focus on username field
-        setTimeout(() => {
-            const usernameField = loginModal.querySelector('input[name="username"]');
-            if (usernameField) usernameField.focus();
-        }, 100);
+        // Check if admin is already logged in
+        const isLoggedIn = loginLink.getAttribute('data-logged-in') === 'true';
+        
+        if (isLoggedIn) {
+            // If already logged in, redirect to admin dashboard
+            window.location.href = '/admin/dashboard';
+        } else {
+            // Otherwise show login modal
+            loginModal.classList.add('is-active');
+            
+            // Focus on username field
+            setTimeout(() => {
+                const usernameField = loginModal.querySelector('input[name="username"]');
+                if (usernameField) usernameField.focus();
+            }, 100);
+        }
     });
     
     // Close modal when close button or cancel button is clicked
